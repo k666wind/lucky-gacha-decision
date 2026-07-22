@@ -1,0 +1,79 @@
+.pack-selector {
+  width: 100%;
+  max-width: 480px;
+}
+
+.pack-selector__label {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.pack-selector__list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pack-selector__chip {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  padding: 2px;
+}
+
+.pack-selector__chip--active {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(76, 217, 232, 0.4);
+}
+
+.pack-selector__chip-btn {
+  background: transparent;
+  color: var(--text-light);
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.pack-selector__input {
+  background: var(--surface-light);
+  color: var(--text-light);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 700;
+  min-width: 100px;
+}
+
+.pack-selector__delete {
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.pack-selector__delete:hover {
+  background: rgba(255, 111, 168, 0.2);
+  color: var(--nebula-pink);
+}
+
+.pack-selector__add {
+  background: var(--surface);
+  border: 2px dashed var(--text-dim);
+  color: var(--text-dim);
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 999px;
+  min-height: 40px;
+  white-space: nowrap;
+}
