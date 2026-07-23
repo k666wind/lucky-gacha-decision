@@ -5,13 +5,21 @@ import { useI18n } from '../../i18n';
 
 interface ResultCardProps {
   option: GachaOption;
+  coinsEarned?: number;
+  stickerEmoji?: string;
   onSpinAgain: () => void;
   onDone: () => void;
 }
 
 const CONFETTI_COLORS = ['#ff6fa8', '#4cd9e8', '#ffd86b', '#a06cff', '#7ee787'];
 
-export const ResultCard: React.FC<ResultCardProps> = ({ option, onSpinAgain, onDone }) => {
+export const ResultCard: React.FC<ResultCardProps> = ({
+  option,
+  coinsEarned,
+  stickerEmoji,
+  onSpinAgain,
+  onDone,
+}) => {
   const { t } = useI18n();
 
   const confetti = useMemo(
@@ -51,6 +59,15 @@ export const ResultCard: React.FC<ResultCardProps> = ({ option, onSpinAgain, onD
           {option.emoji}
         </div>
         <div className="result-card__text">{option.text}</div>
+
+        {(coinsEarned || stickerEmoji) && (
+          <div className="result-card__rewards">
+            {coinsEarned ? <span className="result-card__reward">🪙 +{coinsEarned}</span> : null}
+            {stickerEmoji ? (
+              <span className="result-card__reward">{stickerEmoji} +1</span>
+            ) : null}
+          </div>
+        )}
 
         <div className="result-card__actions">
           <button className="btn btn--secondary" onClick={onDone}>

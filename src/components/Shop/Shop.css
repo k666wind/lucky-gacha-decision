@@ -1,0 +1,86 @@
+.shop {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.shop__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.shop__header h2 {
+  color: var(--star-yellow);
+  font-size: 1.3rem;
+  flex: 1;
+}
+
+.shop__coins {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--star-yellow);
+  background: var(--surface);
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+
+.shop__section h3 {
+  color: var(--text-light);
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.shop__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.shop__item {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-light);
+  min-height: 96px;
+}
+
+.shop__item--active {
+  border-color: var(--accent-cyan);
+  box-shadow: var(--shadow-glow);
+}
+
+.shop__item-emoji {
+  font-size: 1.8rem;
+}
+
+.shop__item-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.shop__item-status {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.shop__item-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.shop__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}

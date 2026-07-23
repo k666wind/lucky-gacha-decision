@@ -13,17 +13,28 @@ const RARITY_COLORS: Record<CapsuleRarity, string> = {
 interface GachaMachineProps {
   spinning: boolean;
   rarity: CapsuleRarity;
+  skinColors?: string[];
 }
 
-const IDLE_CAPSULES = [
-  { cx: 78, cy: 92, r: 9, fill: '#ff6fa8' },
-  { cx: 100, cy: 82, r: 8, fill: '#4cd9e8' },
-  { cx: 118, cy: 96, r: 9, fill: '#ffd86b' },
-  { cx: 90, cy: 108, r: 8, fill: '#a06cff' },
-  { cx: 110, cy: 114, r: 7, fill: '#7ee787' },
+const IDLE_POSITIONS = [
+  { cx: 78, cy: 92, r: 9 },
+  { cx: 100, cy: 82, r: 8 },
+  { cx: 118, cy: 96, r: 9 },
+  { cx: 90, cy: 108, r: 8 },
+  { cx: 110, cy: 114, r: 7 },
 ];
 
-export const GachaMachine: React.FC<GachaMachineProps> = ({ spinning, rarity }) => {
+const DEFAULT_SKIN_COLORS = ['#ff6fa8', '#4cd9e8', '#ffd86b', '#a06cff', '#7ee787'];
+
+export const GachaMachine: React.FC<GachaMachineProps> = ({
+  spinning,
+  rarity,
+  skinColors = DEFAULT_SKIN_COLORS,
+}) => {
+  const idleCapsules = IDLE_POSITIONS.map((pos, i) => ({
+    ...pos,
+    fill: skinColors[i % skinColors.length],
+  }));
   return (
     <div className={`gacha-machine ${spinning ? 'gacha-machine--spinning' : ''}`}>
       <svg viewBox="0 0 200 260" width="240" height="312" role="img" aria-label="Gacha dispenser">
@@ -75,7 +86,7 @@ export const GachaMachine: React.FC<GachaMachineProps> = ({ spinning, rarity }) 
         {/* dome */}
         <g className="gacha-machine__dome">
           <ellipse cx="100" cy="110" rx="62" ry="66" fill="#141a3d" />
-          {IDLE_CAPSULES.map((c, i) => (
+          {idleCapsules.map((c, i) => (
             <circle
               key={i}
               cx={c.cx}

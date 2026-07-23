@@ -1,7 +1,21 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { GachaOption, OptionPack, Language, Statistics } from '../types';
+import type {
+  GachaOption,
+  OptionPack,
+  Language,
+  Statistics,
+  ThemeId,
+  MascotId,
+  CapsuleSkinId,
+  CapsuleRarity,
+} from '../types';
 import { generateId } from '../utils/random';
+import { STICKER_POOL } from '../data/stickers';
+import { THEMES } from '../data/themes';
+import { MASCOTS } from '../data/mascots';
+import { CAPSULE_SKINS } from '../data/capsuleSkins';
+import { ACHIEVEMENTS, type AchievementCheckState } from '../data/achievements';
 
 const DEFAULT_PACK: OptionPack = {
   id: 'pack-default',
@@ -14,14 +28,33 @@ const DEFAULT_PACK: OptionPack = {
   ],
 };
 
-interface GameState {
+const EMPTY_RARITY_COUNTS: Record<CapsuleRarity, number> = {
+  white: 0,
+  blue: 0,
+  purple: 0,
+  gold: 0,
+  rainbow: 0,
+};
+
+export interface ExportedData {
   packs: OptionPack[];
   currentPackId: string;
   language: Language;
   sound: boolean;
   reduceMotion: boolean;
   statistics: Statistics;
+  coins: number;
+  stickers: Record<string, number>;
+  unlockedThemes: ThemeId[];
+  unlockedMascots: MascotId[];
+  unlockedCapsuleSkins: CapsuleSkinId[];
+  currentTheme: ThemeId;
+  currentMascot: MascotId;
+  currentCapsuleSkin: CapsuleSkinId;
+  achievementsUnlocked: string[];
+}
 
+interface GameState extends ExportedData {
   setLanguage: (lang: Language) => void;
   toggleSound: () => void;
   toggleReduceMotion: () => void;
@@ -38,20 +71,58 @@ interface GameState {
   shuffleOptions: (packId: string) => void;
   clearOptions: (packId: string) => void;
 
-  recordSpin: (option: GachaOption) => void;
+  recordSpin: (option: GachaOption, rarity: CapsuleRarity) => { newSticker: string; coinsEarned: number };
+  resetStatistics: () => void;
 
-  importData: (data: Partial<GameState>) => void;
+  unlockTheme: (id: ThemeId) => boolean;
+  unlockMascot: (id: MascotId) => boolean;
+  unlockCapsuleSkin: (id: CapsuleSkinId) => boolean;
+  setCurrentTheme: (id: ThemeId) => void;
+  setCurrentMascot: (id: MascotId) => void;
+  setCurrentCapsuleSkin: (id: CapsuleSkinId) => void;
+
+  checkAchievements: () => string[];
+
+  resetEverything: () => void;
+  exportData: () => ExportedData;
+  importData: (data: Partial<ExportedData>) => void;
 }
+
+function buildAchievementCheckState(s: GameState): AchievementCheckState {
+  return {
+    totalSpins: s.statistics.totalSpins,
+    rarityCounts: s.statistics.rarityCounts,
+    stickerCount: Object.keys(s.stickers).length,
+    totalStickerPoolSize: STICKER_POOL.length,
+    unlockedThemesCount: s.unlockedThemes.length,
+    totalThemesCount: THEMES.length,
+    unlockedMascotsCount: s.unlockedMascots.length,
+    totalMascotsCount: MASCOTS.length,
+  };
+}
+
+const initialState: ExportedData = {
+  packs: [DEFAULT_PACK],
+  currentPackId: DEFAULT_PACK.id,
+  language: 'zh',
+  sound: true,
+  reduceMotion: false,
+  statistics: { totalSpins: 0, mostSelected: {}, lastResult: '', rarityCounts: { ...EMPTY_RARITY_COUNTS } },
+  coins: 0,
+  stickers: {},
+  unlockedThemes: ['space'],
+  unlockedMascots: ['fox'],
+  unlockedCapsuleSkins: ['default'],
+  currentTheme: 'space',
+  currentMascot: 'fox',
+  currentCapsuleSkin: 'default',
+  achievementsUnlocked: [],
+};
 
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
-      packs: [DEFAULT_PACK],
-      currentPackId: DEFAULT_PACK.id,
-      language: 'zh',
-      sound: true,
-      reduceMotion: false,
-      statistics: { totalSpins: 0, mostSelected: {}, lastResult: '' },
+      ...initialState,
 
       setLanguage: (language) => set({ language }),
       toggleSound: () => set((s) => ({ sound: !s.sound })),
@@ -134,25 +205,127 @@ export const useGameStore = create<GameState>()(
           packs: s.packs.map((p) => (p.id === packId ? { ...p, options: [] } : p)),
         })),
 
-      recordSpin: (option) =>
+      recordSpin: (option, rarity) => {
+        const coinsEarned = 5;
+        const sticker = STICKER_POOL[Math.floor(Math.random() * STICKER_POOL.length)];
         set((s) => {
           const key = `${option.emoji} ${option.text}`;
           const mostSelected = { ...s.statistics.mostSelected };
           mostSelected[key] = (mostSelected[key] || 0) + 1;
+          const rarityCounts = { ...s.statistics.rarityCounts };
+          rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
+          const stickers = { ...s.stickers };
+          stickers[sticker.id] = (stickers[sticker.id] || 0) + 1;
           return {
             statistics: {
               totalSpins: s.statistics.totalSpins + 1,
               mostSelected,
               lastResult: key,
+              rarityCounts,
             },
+            coins: s.coins + coinsEarned,
+            stickers,
           };
+        });
+        return { newSticker: sticker.id, coinsEarned };
+      },
+
+      resetStatistics: () =>
+        set({
+          statistics: { totalSpins: 0, mostSelected: {}, lastResult: '', rarityCounts: { ...EMPTY_RARITY_COUNTS } },
         }),
 
-      importData: (data) => set(() => ({ ...get(), ...data })),
+      unlockTheme: (id) => {
+        const s = get();
+        if (s.unlockedThemes.includes(id)) return true;
+        const def = THEMES.find((t) => t.id === id);
+        if (!def || s.coins < def.cost) return false;
+        set({ coins: s.coins - def.cost, unlockedThemes: [...s.unlockedThemes, id] });
+        return true;
+      },
+
+      unlockMascot: (id) => {
+        const s = get();
+        if (s.unlockedMascots.includes(id)) return true;
+        const def = MASCOTS.find((m) => m.id === id);
+        if (!def || s.coins < def.cost) return false;
+        set({ coins: s.coins - def.cost, unlockedMascots: [...s.unlockedMascots, id] });
+        return true;
+      },
+
+      unlockCapsuleSkin: (id) => {
+        const s = get();
+        if (s.unlockedCapsuleSkins.includes(id)) return true;
+        const def = CAPSULE_SKINS.find((c) => c.id === id);
+        if (!def || s.coins < def.cost) return false;
+        set({ coins: s.coins - def.cost, unlockedCapsuleSkins: [...s.unlockedCapsuleSkins, id] });
+        return true;
+      },
+
+      setCurrentTheme: (id) => set({ currentTheme: id }),
+      setCurrentMascot: (id) => set({ currentMascot: id }),
+      setCurrentCapsuleSkin: (id) => set({ currentCapsuleSkin: id }),
+
+      checkAchievements: () => {
+        const s = get();
+        const checkState = buildAchievementCheckState(s);
+        const newly: string[] = [];
+        ACHIEVEMENTS.forEach((a) => {
+          if (!s.achievementsUnlocked.includes(a.id) && a.check(checkState)) {
+            newly.push(a.id);
+          }
+        });
+        if (newly.length) {
+          set({ achievementsUnlocked: [...s.achievementsUnlocked, ...newly] });
+        }
+        return newly;
+      },
+
+      resetEverything: () => set({ ...initialState, packs: [{ ...DEFAULT_PACK, id: generateId() }] }),
+
+      exportData: () => {
+        const s = get();
+        const {
+          packs,
+          currentPackId,
+          language,
+          sound,
+          reduceMotion,
+          statistics,
+          coins,
+          stickers,
+          unlockedThemes,
+          unlockedMascots,
+          unlockedCapsuleSkins,
+          currentTheme,
+          currentMascot,
+          currentCapsuleSkin,
+          achievementsUnlocked,
+        } = s;
+        return {
+          packs,
+          currentPackId,
+          language,
+          sound,
+          reduceMotion,
+          statistics,
+          coins,
+          stickers,
+          unlockedThemes,
+          unlockedMascots,
+          unlockedCapsuleSkins,
+          currentTheme,
+          currentMascot,
+          currentCapsuleSkin,
+          achievementsUnlocked,
+        };
+      },
+
+      importData: (data) => set((s) => ({ ...s, ...data })),
     }),
     {
       name: 'lucky-gacha-decision-storage',
-      version: 1,
+      version: 2,
     }
   )
 );

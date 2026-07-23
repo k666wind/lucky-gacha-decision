@@ -25,6 +25,19 @@
 .app__topbar-controls {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.app__coins-badge {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  color: var(--star-yellow);
+  font-weight: 700;
+  padding: 0 14px;
+  border-radius: 999px;
+  min-height: 48px;
 }
 
 .app__icon-btn {

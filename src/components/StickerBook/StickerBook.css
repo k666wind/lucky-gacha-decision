@@ -1,0 +1,75 @@
+.sticker-book {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sticker-book__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sticker-book__header h2 {
+  color: var(--star-yellow);
+  font-size: 1.3rem;
+}
+
+.sticker-book__progress {
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.sticker-book__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+}
+
+.sticker-book__slot {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  border: 2px solid transparent;
+  opacity: 0.45;
+}
+
+.sticker-book__slot--owned {
+  opacity: 1;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(76, 217, 232, 0.3);
+  animation: stickerPop 0.35s ease-out;
+}
+
+@keyframes stickerPop {
+  0% {
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.sticker-book__count {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+}
